@@ -14,7 +14,7 @@
         <ContextMenu>
             <MenuItem Header="Lock / Unlock" Click="SwitchLock"></MenuItem>
             <MenuItem Header="Choose Photo" Click="OpenPhotoFileDialog"></MenuItem>
-            <MenuItem Header="Choose Folder"></MenuItem>
+            <MenuItem Header="Choose Folder" Click="OpenPhotoFolderDialog"></MenuItem>
             <MenuItem Header="Settings"></MenuItem>
             <MenuItem Header="Exit" Click="Exit"></MenuItem>
         </ContextMenu>
