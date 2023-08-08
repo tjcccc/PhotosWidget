@@ -23,7 +23,8 @@ namespace PhotosWidget
         private WidgetMode Mode { get; set; } = WidgetMode.Static;
         private string CurrentImageFilePath { get; set; }
         private List<string> FolderImagePaths { get; set; }
-        public Image CurrentImage { get; set; }
+        private Image CurrentImage { get; set; }
+        public bool IsLocked { get; set; } = false;
 
         public MainWindow()
         {
@@ -32,12 +33,22 @@ namespace PhotosWidget
 
         private void EnableDrag(object sender, MouseButtonEventArgs e)
         {
+            if (IsLocked)
+            {
+                return;
+            }
+
             var move = sender as Window;
             if (move != null)
             {
                 Window win = Window.GetWindow(move);
                 win.DragMove();
             }
+        }
+
+        private void SwitchLock(object sender, RoutedEventArgs e)
+        {
+            IsLocked = !IsLocked;
         }
 
         public void OpenPhotoFileDialog(object sender, RoutedEventArgs e)

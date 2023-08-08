@@ -12,6 +12,7 @@
     </Grid>
     <Window.ContextMenu>
         <ContextMenu>
+            <MenuItem Header="Lock / Unlock" Click="SwitchLock"></MenuItem>
             <MenuItem Header="Choose Photo" Click="OpenPhotoFileDialog"></MenuItem>
             <MenuItem Header="Choose Folder"></MenuItem>
             <MenuItem Header="Settings"></MenuItem>
