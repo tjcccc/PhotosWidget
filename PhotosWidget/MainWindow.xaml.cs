@@ -14,7 +14,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Forms;
+using System.Threading;
 using System.Text.RegularExpressions;
+using System.Windows.Threading;
 
 namespace PhotosWidget
 {
@@ -30,9 +32,19 @@ namespace PhotosWidget
         private Image CurrentImage { get; set; }
         public bool IsLocked { get; set; } = false;
 
+        private DispatcherTimer SlideTimer { get; set; }
+
+        //public Config UserConfig { get; set; }
+
+        private bool LoopingTheFolder { get; set; } = false;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            SlideTimer = new DispatcherTimer();
+            SlideTimer.Interval = TimeSpan.FromSeconds(5);
+            SlideTimer.Tick += SlideImages;
         }
 
         private void EnableDrag(object sender, MouseButtonEventArgs e)
@@ -67,6 +79,7 @@ namespace PhotosWidget
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
                     Mode = WidgetMode.Static;
+                    SlideTimer.Stop();
                     CurrentPhotoFilePath = dialog.FileName;
 
                     LoadImage(dialog.FileName);
@@ -81,12 +94,15 @@ namespace PhotosWidget
                 var result = dialog.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
                 {
-                    Mode = WidgetMode.Slider;
+                    Mode = WidgetMode.Slide;
                     CurrentPhotosFolderPath = dialog.SelectedPath;
-                    Console.WriteLine(CurrentPhotosFolderPath);
+                    //Console.WriteLine(CurrentPhotosFolderPath);
 
                     var directoryInfo = new DirectoryInfo(dialog.SelectedPath);
                     var files = directoryInfo.GetFiles("*.*");
+                    FolderImagePaths = new List<string>();
+                    //SlideThread.Abort();
+
                     foreach (var file in files)
                     {
                         //Console.WriteLine(file.Name);
@@ -96,8 +112,10 @@ namespace PhotosWidget
                             //Console.WriteLine(file.FullName);
                         }
                     }
-                    //Console.WriteLine(FolderImagePaths);
-                    SlideImages(FolderImagePaths);
+
+                    SlideImages(sender, e);
+
+                    SlideTimer.Start();
                 }
             }
         }
@@ -119,39 +137,31 @@ namespace PhotosWidget
             bi.UriSource = new Uri(filePath, UriKind.Absolute);
             bi.EndInit();
 
+            appTitleLabel.Visibility = Visibility.Hidden;
+            appPromptLabel.Visibility = Visibility.Hidden;
+            StagePhoto.Visibility = Visibility.Visible;
             StagePhoto.Source = bi;
         }
 
-        private async void SlideImages(List<string> filePaths)
+        private void SlideImages(object sender, EventArgs e)
         {
-            if (filePaths.Count == 0)
+            if (FolderImagePaths.Count == 0)
             {
+                SlideTimer.Stop();
                 return;
             }
 
-            for (var i = 0; i < filePaths.Count; i += 1)
-            {
-                if (Mode == WidgetMode.Static)
-                {
-                    break;
-                }
-
-                if (i + 1 == filePaths.Count)
-                {
-                    i = 0;
-                }
-
-                LoadImage(filePaths[i]);
-
-                await Task.Delay(3000);
-            }
+            var imageToLoad = FolderImagePaths[0];
+            LoadImage(FolderImagePaths[0]);
+            FolderImagePaths.RemoveAt(0);
+            FolderImagePaths.Add(imageToLoad);
         }
 
     }
 
     public enum WidgetMode
     {
-        Static,
-        Slider
+        Static = 0,
+        Slide = 1
     }
 }
