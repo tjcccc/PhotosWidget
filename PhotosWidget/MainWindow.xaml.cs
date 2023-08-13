@@ -18,6 +18,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
 
+
 namespace PhotosWidget
 {
     /// <summary>
@@ -34,17 +35,22 @@ namespace PhotosWidget
 
         private DispatcherTimer SlideTimer { get; set; }
 
-        //public Config UserConfig { get; set; }
-
-        private bool LoopingTheFolder { get; set; } = false;
+        public UserConfig UserConfig { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
 
+            InitializeApp();
+
             SlideTimer = new DispatcherTimer();
             SlideTimer.Interval = TimeSpan.FromSeconds(5);
             SlideTimer.Tick += SlideImages;
+        }
+
+        private void InitializeApp()
+        {
+            var userConfig = UserConfig.Load();
         }
 
         private void EnableDrag(object sender, MouseButtonEventArgs e)
@@ -113,6 +119,7 @@ namespace PhotosWidget
                         }
                     }
 
+                    // Load the first image immidiately.
                     SlideImages(sender, e);
 
                     SlideTimer.Start();
