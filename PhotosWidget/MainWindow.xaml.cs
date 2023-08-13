@@ -40,17 +40,41 @@ namespace PhotosWidget
         public MainWindow()
         {
             InitializeComponent();
-
             InitializeApp();
-
-            SlideTimer = new DispatcherTimer();
-            SlideTimer.Interval = TimeSpan.FromSeconds(5);
-            SlideTimer.Tick += SlideImages;
         }
 
         private void InitializeApp()
         {
-            var userConfig = UserConfig.Load();
+            SlideTimer = new DispatcherTimer();
+            SlideTimer.Interval = TimeSpan.FromSeconds(5);
+            SlideTimer.Tick += SlideImages;
+
+            UserConfig = UserConfig.Load();
+
+            switch (UserConfig.ModeCode)
+            {
+                case (int)WidgetMode.Static:
+                    if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFilePath) == false)
+                    {
+                        CurrentPhotoFilePath = UserConfig.CurrentPhotoFilePath;
+                        LoadImage(CurrentPhotoFilePath);
+                    }
+                    break;
+                case (int)WidgetMode.Slide:
+                    if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFolderPath) == false)
+                    {
+                        CurrentPhotosFolderPath = UserConfig.CurrentPhotoFolderPath;
+                        FolderImagePaths = GetImageFilePathsFromFolder(CurrentPhotosFolderPath);
+                        
+                        SlideImages();
+
+                        SlideTimer.Start();
+                    }
+                    break;
+            }
+
+            
+            IsLocked = UserConfig.IsLocked;
         }
 
         private void EnableDrag(object sender, MouseButtonEventArgs e)
@@ -71,6 +95,8 @@ namespace PhotosWidget
         private void SwitchLock(object sender, RoutedEventArgs e)
         {
             IsLocked = !IsLocked;
+            UserConfig.IsLocked = IsLocked;
+            UserConfig.Save();
         }
 
         public void OpenPhotoFileDialog(object sender, RoutedEventArgs e)
@@ -88,6 +114,10 @@ namespace PhotosWidget
                     SlideTimer.Stop();
                     CurrentPhotoFilePath = dialog.FileName;
 
+                    UserConfig.ModeCode = (int)WidgetMode.Static;
+                    UserConfig.CurrentPhotoFilePath = dialog.FileName;
+                    UserConfig.Save();
+
                     LoadImage(dialog.FileName);
                 }
             }
@@ -104,20 +134,11 @@ namespace PhotosWidget
                     CurrentPhotosFolderPath = dialog.SelectedPath;
                     //Console.WriteLine(CurrentPhotosFolderPath);
 
-                    var directoryInfo = new DirectoryInfo(dialog.SelectedPath);
-                    var files = directoryInfo.GetFiles("*.*");
-                    FolderImagePaths = new List<string>();
-                    //SlideThread.Abort();
+                    UserConfig.ModeCode = (int)WidgetMode.Slide;
+                    UserConfig.CurrentPhotoFolderPath = dialog.SelectedPath;
+                    UserConfig.Save();
 
-                    foreach (var file in files)
-                    {
-                        //Console.WriteLine(file.Name);
-                        if (Regex.IsMatch(file.Name, @"\.jpg$|\.png$|\.jpeg$|\.jfif$|\.webp$|\.bmp$|\.gif$"))
-                        {
-                            FolderImagePaths.Add(file.FullName);
-                            //Console.WriteLine(file.FullName);
-                        }
-                    }
+                    FolderImagePaths = GetImageFilePathsFromFolder(dialog.SelectedPath);
 
                     // Load the first image immidiately.
                     SlideImages(sender, e);
@@ -125,6 +146,26 @@ namespace PhotosWidget
                     SlideTimer.Start();
                 }
             }
+        }
+
+        private List<string> GetImageFilePathsFromFolder(string folderPath)
+        {
+            var directoryInfo = new DirectoryInfo(folderPath);
+            var files = directoryInfo.GetFiles("*.*");
+
+            var imageFilePaths = new List<string>();
+
+            foreach (var file in files)
+            {
+                //Console.WriteLine(file.Name);
+                if (Regex.IsMatch(file.Name, @"\.jpg$|\.png$|\.jpeg$|\.jfif$|\.webp$|\.bmp$|\.gif$"))
+                {
+                    imageFilePaths.Add(file.FullName);
+                    //Console.WriteLine(file.FullName);
+                }
+            }
+
+            return imageFilePaths;
         }
 
         public void OpenSettings(object sender, RoutedEventArgs e)
@@ -150,7 +191,7 @@ namespace PhotosWidget
             StagePhoto.Source = bi;
         }
 
-        private void SlideImages(object sender, EventArgs e)
+        private void SlideImages(object sender = null, EventArgs e = null)
         {
             if (FolderImagePaths.Count == 0)
             {
