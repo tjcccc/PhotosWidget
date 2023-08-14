@@ -18,7 +18,6 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
 
-
 namespace PhotosWidget
 {
     /// <summary>
@@ -45,11 +44,19 @@ namespace PhotosWidget
 
         private void InitializeApp()
         {
+            UserConfig = UserConfig.Load();
+            ApplyConfig();
+        }
+
+        private void ApplyConfig()
+        {
             SlideTimer = new DispatcherTimer();
             SlideTimer.Interval = TimeSpan.FromSeconds(5);
             SlideTimer.Tick += SlideImages;
 
-            UserConfig = UserConfig.Load();
+            IsLocked = UserConfig.IsLocked;
+
+            mainBorder.CornerRadius = new CornerRadius(UserConfig.BorderRadious);
 
             switch (UserConfig.ModeCode)
             {
@@ -59,22 +66,33 @@ namespace PhotosWidget
                         CurrentPhotoFilePath = UserConfig.CurrentPhotoFilePath;
                         LoadImage(CurrentPhotoFilePath);
                     }
+                    else
+                    {
+                        appTitleLabel.Visibility = Visibility.Visible;
+                        appPromptLabel.Visibility = Visibility.Visible;
+                        stagePhoto.Visibility = Visibility.Hidden;
+                        stagePhoto.Source = null;
+                    }
                     break;
                 case (int)WidgetMode.Slide:
                     if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFolderPath) == false)
                     {
                         CurrentPhotosFolderPath = UserConfig.CurrentPhotoFolderPath;
                         FolderImagePaths = GetImageFilePathsFromFolder(CurrentPhotosFolderPath);
-                        
+
                         SlideImages();
 
                         SlideTimer.Start();
                     }
+                    else
+                    {
+                        appTitleLabel.Visibility = Visibility.Visible;
+                        appPromptLabel.Visibility = Visibility.Visible;
+                        stagePhoto.Visibility = Visibility.Hidden;
+                        stagePhoto.Source = null;
+                    }
                     break;
             }
-
-            
-            IsLocked = UserConfig.IsLocked;
         }
 
         private void EnableDrag(object sender, MouseButtonEventArgs e)
@@ -104,7 +122,7 @@ namespace PhotosWidget
             using (var dialog = new OpenFileDialog())
             {
                 dialog.Multiselect = false;
-                dialog.Filter = "Image Files|*.jpg;*.png;*.jpeg;*.jfif;*.webp;*.bmp;*.gif";
+                dialog.Filter = "Image Files|*.jpg;*.png;*.jpeg;*.jfif;*.webp;*.bmp";
                 
                 var result = dialog.ShowDialog();
                 
@@ -168,16 +186,6 @@ namespace PhotosWidget
             return imageFilePaths;
         }
 
-        public void OpenSettings(object sender, RoutedEventArgs e)
-        {
-            // TODO
-        }
-
-        public void Exit(object sender, RoutedEventArgs e)
-        {
-            App.Current.Shutdown();
-        }
-
         private void LoadImage(string filePath)
         {
             BitmapImage bi = new BitmapImage();
@@ -187,8 +195,8 @@ namespace PhotosWidget
 
             appTitleLabel.Visibility = Visibility.Hidden;
             appPromptLabel.Visibility = Visibility.Hidden;
-            StagePhoto.Visibility = Visibility.Visible;
-            StagePhoto.Source = bi;
+            stagePhoto.Visibility = Visibility.Visible;
+            stagePhoto.Source = bi;
         }
 
         private void SlideImages(object sender = null, EventArgs e = null)
@@ -203,6 +211,24 @@ namespace PhotosWidget
             LoadImage(FolderImagePaths[0]);
             FolderImagePaths.RemoveAt(0);
             FolderImagePaths.Add(imageToLoad);
+        }
+
+        public void Reset(object sender, RoutedEventArgs e)
+        {
+            UserConfig = new UserConfig();
+            UserConfig.Save();
+            
+            ApplyConfig();
+        }
+
+        public void OpenSettings(object sender, RoutedEventArgs e)
+        {
+            // TODO
+        }
+
+        public void Exit(object sender, RoutedEventArgs e)
+        {
+            App.Current.Shutdown();
         }
 
     }

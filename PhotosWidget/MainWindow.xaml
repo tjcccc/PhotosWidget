@@ -1,23 +1,30 @@
-﻿<Window x:Name="Main" x:Class="PhotosWidget.MainWindow"
+﻿<Window x:Name="main" x:Class="PhotosWidget.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PhotosWidget"
         mc:Ignorable="d"
-        Title="PhotosWidget" Height="579" Width="417" ResizeMode="NoResize" ShowInTaskbar="False" WindowStyle="None" UseLayoutRounding="False" WindowStartupLocation="CenterScreen"
-        MouseLeftButtonDown="EnableDrag">
-    <Grid x:Name="Container" Background="#FFEFEFEF">
-        <Label x:Name="appTitleLabel" Content="PhotosWidget" HorizontalAlignment="Left" Margin="10,171,0,0" VerticalAlignment="Top" Width="397" Height="87" FontSize="36" FontWeight="ExtraBlack" FontFamily="Meiryo UI" FontStyle="Italic" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-        <Label x:Name="appPromptLabel" Content="(right click to use)" HorizontalAlignment="Left" Margin="10,396,0,0" VerticalAlignment="Top" Width="397" Height="82" FontWeight="Bold" FontFamily="Meiryo UI" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Background="{x:Null}" Foreground="#FF828282"/>
-        <Image x:Name="StagePhoto" Cursor="Arrow" Stretch="UniformToFill" Visibility="Hidden" />
-    </Grid>
+        Title="PhotosWidget" Height="579" Width="417" ResizeMode="NoResize" ShowInTaskbar="False" UseLayoutRounding="False" WindowStartupLocation="CenterScreen"
+        MouseLeftButtonDown="EnableDrag" Background="{x:Null}" AllowsTransparency="True" WindowStyle="None">
+    <Border x:Name="mainBorder" Background="#7F000000" BorderBrush="Black" BorderThickness="0" Padding="4">
+        <Grid x:Name="container">
+            <Grid.OpacityMask>
+                <VisualBrush Visual="{Binding ElementName=contentBorder}" />
+            </Grid.OpacityMask>
+            <Border x:Name="contentBorder" CornerRadius="16" Background="#FFEFEFEF" />
+            <Label x:Name="appTitleLabel" Content="PhotosWidget" HorizontalAlignment="Left" Margin="10,171,0,0" VerticalAlignment="Top" Width="397" Height="87" FontSize="36" FontWeight="ExtraBlack" FontFamily="Meiryo UI" FontStyle="Italic" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Label x:Name="appPromptLabel" Content="(right click to use)" HorizontalAlignment="Left" Margin="10,396,0,0" VerticalAlignment="Top" Width="397" Height="82" FontWeight="Bold" FontFamily="Meiryo UI" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Background="{x:Null}" Foreground="#FF828282"/>
+            <Image x:Name="stagePhoto" Cursor="Arrow" Stretch="UniformToFill" Visibility="Hidden" />
+        </Grid>
+    </Border>
     <Window.ContextMenu>
         <ContextMenu>
             <MenuItem Header="Lock / Unlock" Click="SwitchLock"></MenuItem>
             <MenuItem Header="Choose Photo" Click="OpenPhotoFileDialog"></MenuItem>
             <MenuItem Header="Choose Folder" Click="OpenPhotoFolderDialog"></MenuItem>
             <MenuItem Header="Settings"></MenuItem>
+            <MenuItem Header="Reset" Click="Reset"></MenuItem>
             <MenuItem Header="Exit" Click="Exit"></MenuItem>
         </ContextMenu>
     </Window.ContextMenu>
