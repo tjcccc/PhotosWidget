@@ -1,0 +1,29 @@
+﻿<Window x:Name="settings" x:Class="PhotosWidget.Settings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PhotosWidget"
+        mc:Ignorable="d"
+        Title="Settings" Height="320" Width="320" WindowStartupLocation="CenterOwner" ShowInTaskbar="False" Topmost="True" ResizeMode="NoResize" WindowStyle="None" AllowsTransparency="True" Background="{x:Null}">
+    <Grid>
+        <Grid.OpacityMask>
+            <VisualBrush Visual="{Binding ElementName=settingsBorder}" />
+        </Grid.OpacityMask>
+        <Border x:Name="settingsBorder" CornerRadius="16" Background="White" />
+        <Label x:Name="widthLabel" Content="Width" HorizontalAlignment="Left" Margin="32,24,0,0" VerticalAlignment="Top" Height="24" Padding="4,4,4,4" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="widthTextBox" HorizontalAlignment="Left" Margin="32,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" VerticalContentAlignment="Center" Padding="8,0,8,0" PreviewTextInput="PreviewTextboxInput"/>
+        <Label x:Name="heightLabel" Content="Height" HorizontalAlignment="Left" Margin="168,24,0,0" VerticalAlignment="Top" Height="24" Padding="4,4,4,4" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="heightTextBox" HorizontalAlignment="Left" Margin="168,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" VerticalContentAlignment="Center" Padding="8,0,8,0" PreviewTextInput="PreviewTextboxInput"/>
+        <Button x:Name="defaultLandscapeButton" Content="Default landscape" HorizontalAlignment="Left" Margin="32,80,0,0" VerticalAlignment="Top" RenderTransformOrigin="-2.585,0.011" Width="120" Height="24" Click="defaultLandscapeButton_Click"/>
+        <Button x:Name="defaultPortraitButton" Content="Default portrait" HorizontalAlignment="Left" Margin="168,80,0,0" VerticalAlignment="Top" Width="120" Height="24" Click="defaultPortraitButton_Click"/>
+        <Label x:Name="borderRadiousLabel" Content="Border Radious" HorizontalAlignment="Left" Margin="32,120,0,0" VerticalAlignment="Top" Height="24" Padding="4,4,4,4" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="borderRadiousTextBox" HorizontalAlignment="Left" Margin="32,144,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" VerticalContentAlignment="Center" Padding="8,0,8,0" PreviewTextInput="PreviewTextboxInput"/>
+        <Label x:Name="borderWidthLabel" Content="Border Width" HorizontalAlignment="Left" Margin="168,120,0,0" VerticalAlignment="Top" Height="24" Padding="4,4,4,4" VerticalContentAlignment="Center"/>
+        <TextBox x:Name="borderWidthTextBox" HorizontalAlignment="Left" Margin="168,144,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" VerticalContentAlignment="Center" Padding="8,0,8,0" PreviewTextInput="PreviewTextboxInput"/>
+        <Label x:Name="slideIntervalLabel" Content="Slide Interval" HorizontalAlignment="Left" Margin="32,184,0,0" VerticalAlignment="Top" Height="24" VerticalContentAlignment="Center" Padding="4,4,4,4"/>
+        <TextBox x:Name="slideIntervalTextbox" HorizontalAlignment="Left" Margin="32,208,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="24" VerticalContentAlignment="Center" Padding="8,0,8,0" PreviewTextInput="PreviewTextboxInput"/>
+        <Button x:Name="closeButton" Content="Close" HorizontalAlignment="Left" Margin="92,272,0,0" VerticalAlignment="Top" Width="136" Height="24" FontWeight="Bold" Click="closeButton_Click"/>
+    </Grid>
+    
+</Window>

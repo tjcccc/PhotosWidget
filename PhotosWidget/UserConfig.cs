@@ -17,8 +17,8 @@ namespace PhotosWidget
         public bool IsLocked { get; set; } = false;
         public int WidgetWidth { get; set; } = 417;
         public int WidgetHeight { get; set; } = 579;
-        public int BorderRadious { get; set; } = 16;
-        public bool ShadowEnabled { get; set; } = false;
+        public int BorderRadious { get; set; } = 8;
+        public int BorderWidth { get; set; } = 2;
 
         public string ToConfigText()
         {
@@ -32,7 +32,7 @@ namespace PhotosWidget
             result += $"WidgetWidth = {WidgetWidth}\n";
             result += $"WidgetHeight = {WidgetHeight}\n";
             result += $"BorderRadious = {BorderRadious}\n";
-            result += $"ShadowEnabled = {ShadowEnabled}\n";
+            result += $"BorderWidth = {BorderWidth}\n";
 
             return result;
         }
@@ -71,8 +71,8 @@ namespace PhotosWidget
                     case "BorderRadious":
                         config.BorderRadious = int.Parse(keyValue[1].Trim() ?? "0");
                         break;
-                    case "ShadowEnabled":
-                        config.ShadowEnabled = (keyValue[1].Trim() ?? "False") == "True";
+                    case "BorderWidth":
+                        config.BorderWidth = int.Parse(keyValue[1].Trim() ?? "0");
                         break;
                     default:
                         break;

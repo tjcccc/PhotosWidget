@@ -17,6 +17,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 
 namespace PhotosWidget
 {
@@ -29,17 +30,23 @@ namespace PhotosWidget
         private string CurrentPhotoFilePath { get; set; }
         private string CurrentPhotosFolderPath { get; set; }
         private List<string> FolderImagePaths { get; set; } = new List<string>();
-        private Image CurrentImage { get; set; }
+        //private Image CurrentImage { get; set; }
         public bool IsLocked { get; set; } = false;
 
         private DispatcherTimer SlideTimer { get; set; }
 
         public UserConfig UserConfig { get; set; }
+        private bool IsApplyingConfig { get; set; }
+
+        //private readonly DoubleAnimation fadeInAnimation = new DoubleAnimation(0, 1, TimeSpan.FromSeconds(1));
+        //private readonly DoubleAnimation fadeOutAnimation = new DoubleAnimation(1, 0.5d, TimeSpan.FromSeconds(1));
 
         public MainWindow()
         {
             InitializeComponent();
             InitializeApp();
+
+            this.DataContext = this;
         }
 
         private void InitializeApp()
@@ -50,24 +57,38 @@ namespace PhotosWidget
 
         private void ApplyConfig()
         {
+            IsApplyingConfig = true;
+
+            SlideTimer?.Stop();
             SlideTimer = new DispatcherTimer();
-            SlideTimer.Interval = TimeSpan.FromSeconds(5);
+            SlideTimer.Interval = TimeSpan.FromSeconds(UserConfig.SlideIntervalSeconds);
             SlideTimer.Tick += SlideImages;
 
-            IsLocked = UserConfig.IsLocked;
+            main.Width = UserConfig.WidgetWidth;
+            main.Height = UserConfig.WidgetHeight;
 
-            mainBorder.CornerRadius = new CornerRadius(UserConfig.BorderRadious);
+            Mode = (WidgetMode)UserConfig.ModeCode;
+
+            IsLocked = UserConfig.IsLocked;
+            lockOption.Header = IsLocked ? Properties.Resources.unlockLabel : Properties.Resources.lockLabel;
+
+            mainBorder.CornerRadius = new CornerRadius(UserConfig.BorderRadious * 1.2f);
+            contentBorder.CornerRadius = new CornerRadius(UserConfig.BorderRadious);
+
+            mainBorder.Padding = new Thickness(UserConfig.BorderWidth);
 
             switch (UserConfig.ModeCode)
             {
                 case (int)WidgetMode.Static:
                     if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFilePath) == false)
                     {
+                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         CurrentPhotoFilePath = UserConfig.CurrentPhotoFilePath;
                         LoadImage(CurrentPhotoFilePath);
                     }
                     else
                     {
+                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         appTitleLabel.Visibility = Visibility.Visible;
                         appPromptLabel.Visibility = Visibility.Visible;
                         stagePhoto.Visibility = Visibility.Hidden;
@@ -77,11 +98,11 @@ namespace PhotosWidget
                 case (int)WidgetMode.Slide:
                     if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFolderPath) == false)
                     {
+                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         CurrentPhotosFolderPath = UserConfig.CurrentPhotoFolderPath;
                         FolderImagePaths = GetImageFilePathsFromFolder(CurrentPhotosFolderPath);
 
                         SlideImages();
-
                         SlideTimer.Start();
                     }
                     else
@@ -93,6 +114,13 @@ namespace PhotosWidget
                     }
                     break;
             }
+
+            if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFilePath) && string.IsNullOrEmpty(UserConfig.CurrentPhotoFolderPath))
+            {
+                contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ffffc825");
+            }
+
+            IsApplyingConfig = false;
         }
 
         private void EnableDrag(object sender, MouseButtonEventArgs e)
@@ -110,9 +138,26 @@ namespace PhotosWidget
             }
         }
 
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (IsApplyingConfig)
+            {
+                return;
+            }
+
+            var height = main.Height;
+            var width = main.Width;
+            UserConfig.WidgetHeight = (int)height;
+            UserConfig.WidgetWidth = (int)width;
+            UserConfig.Save();
+        }
+
         private void SwitchLock(object sender, RoutedEventArgs e)
         {
             IsLocked = !IsLocked;
+
+            main.ResizeMode = IsLocked ? ResizeMode.NoResize : ResizeMode.CanResize;
+            lockOption.Header = IsLocked ? Properties.Resources.unlockLabel : Properties.Resources.lockLabel;
             UserConfig.IsLocked = IsLocked;
             UserConfig.Save();
         }
@@ -130,6 +175,7 @@ namespace PhotosWidget
                 {
                     Mode = WidgetMode.Static;
                     SlideTimer.Stop();
+                    stagePhoto.Opacity = 1;
                     CurrentPhotoFilePath = dialog.FileName;
 
                     UserConfig.ModeCode = (int)WidgetMode.Static;
@@ -159,7 +205,9 @@ namespace PhotosWidget
                     FolderImagePaths = GetImageFilePathsFromFolder(dialog.SelectedPath);
 
                     // Load the first image immidiately.
+                    stagePhoto.Source = null;
                     SlideImages(sender, e);
+                    //LoadImage(FolderImagePaths[0]);
 
                     SlideTimer.Start();
                 }
@@ -176,7 +224,7 @@ namespace PhotosWidget
             foreach (var file in files)
             {
                 //Console.WriteLine(file.Name);
-                if (Regex.IsMatch(file.Name, @"\.jpg$|\.png$|\.jpeg$|\.jfif$|\.webp$|\.bmp$|\.gif$"))
+                if (Regex.IsMatch(file.Name, @"\.jpg$|\.png$|\.jpeg$|\.jfif$|\.webp$|\.bmp$"))
                 {
                     imageFilePaths.Add(file.FullName);
                     //Console.WriteLine(file.FullName);
@@ -196,7 +244,47 @@ namespace PhotosWidget
             appTitleLabel.Visibility = Visibility.Hidden;
             appPromptLabel.Visibility = Visibility.Hidden;
             stagePhoto.Visibility = Visibility.Visible;
+
+            //if (Mode == WidgetMode.Static)
+            //{
+            //    stagePhoto.Source = bi;
+            //    return;
+            //}
+
             stagePhoto.Source = bi;
+
+            //if (stagePhoto.Source != null)
+            //{
+            //    stagePhoto.BeginAnimation(OpacityProperty, fadeOutAnimation);
+            //    fadeOutAnimation.Completed += (s, e) =>
+            //    {
+            //        if (Mode == WidgetMode.Static)
+            //        {
+            //            stagePhoto.Opacity = 1;
+            //            return;
+            //        }
+            //        stagePhoto.Source = bi;
+            //        stagePhoto.BeginAnimation(OpacityProperty, fadeInAnimation);
+            //    };
+            //}
+            //else
+            //{
+            //    if (Mode == WidgetMode.Static)
+            //    {
+            //        stagePhoto.Opacity = 1;
+            //        return;
+            //    }
+            //    stagePhoto.Opacity = 0;
+            //    stagePhoto.Source = bi;
+            //    stagePhoto.BeginAnimation(OpacityProperty, fadeInAnimation);
+            //    fadeInAnimation.Completed += (s, e) =>
+            //    {
+            //        stagePhoto.Opacity = 1;
+            //    };
+            //}
+
+
+
         }
 
         private void SlideImages(object sender = null, EventArgs e = null)
@@ -208,7 +296,7 @@ namespace PhotosWidget
             }
 
             var imageToLoad = FolderImagePaths[0];
-            LoadImage(FolderImagePaths[0]);
+            LoadImage(imageToLoad);
             FolderImagePaths.RemoveAt(0);
             FolderImagePaths.Add(imageToLoad);
         }
@@ -223,7 +311,15 @@ namespace PhotosWidget
 
         public void OpenSettings(object sender, RoutedEventArgs e)
         {
-            // TODO
+            var settingsWindow = new Settings(UserConfig);
+            settingsWindow.Owner = this;
+            settingsWindow.Closed += (s, args) =>
+            {
+                UserConfig.Save();
+                ApplyConfig();
+            };
+
+            settingsWindow.ShowDialog();
         }
 
         public void Exit(object sender, RoutedEventArgs e)
