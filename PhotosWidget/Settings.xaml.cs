@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace PhotosWidget
 {
@@ -32,7 +21,7 @@ namespace PhotosWidget
             UserConfig = userConfig;
             widthTextBox.Text = userConfig.WidgetWidth.ToString();
             heightTextBox.Text = userConfig.WidgetHeight.ToString();
-            borderRadiousTextBox.Text = userConfig.BorderRadious.ToString();
+            borderRadiusTextBox.Text = userConfig.BorderRadius.ToString();
             borderWidthTextBox.Text = userConfig.BorderWidth.ToString();
             slideIntervalTextbox.Text = userConfig.SlideIntervalSeconds.ToString();
         }
@@ -59,7 +48,7 @@ namespace PhotosWidget
         {
             UserConfig.WidgetWidth = int.Parse(widthTextBox.Text);
             UserConfig.WidgetHeight = int.Parse(heightTextBox.Text);
-            UserConfig.BorderRadious = int.Parse(borderRadiousTextBox.Text);
+            UserConfig.BorderRadius = int.Parse(borderRadiusTextBox.Text);
             UserConfig.BorderWidth = int.Parse(borderWidthTextBox.Text);
             UserConfig.SlideIntervalSeconds = int.Parse(slideIntervalTextbox.Text);
             //UserConfig.Save();
