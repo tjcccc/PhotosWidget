@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PhotosWidget"
         mc:Ignorable="d"
         Title="PhotosWidget" Height="579" Width="417" ShowInTaskbar="False" UseLayoutRounding="False" WindowStartupLocation="CenterScreen"
-        MouseLeftButtonDown="EnableDrag" Background="{x:Null}" AllowsTransparency="True" WindowStyle="None" ResizeMode="CanResize" SizeChanged="OnSizeChanged">
+        MouseLeftButtonDown="EnableDrag" Background="{x:Null}" AllowsTransparency="True" WindowStyle="None" ResizeMode="CanResize" SizeChanged="OnSizeChanged" LocationChanged="OnLocationChanged">
     <WindowChrome.WindowChrome>
         <WindowChrome ResizeBorderThickness="20" />
     </WindowChrome.WindowChrome>

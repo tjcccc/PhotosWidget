@@ -6,10 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Forms;
-using System.Threading;
 using System.Text.RegularExpressions;
 using System.Windows.Threading;
-using System.Windows.Media.Animation;
 
 namespace PhotosWidget
 {
@@ -52,8 +50,10 @@ namespace PhotosWidget
             IsApplyingConfig = true;
 
             SlideTimer?.Stop();
-            SlideTimer = new DispatcherTimer();
-            SlideTimer.Interval = TimeSpan.FromSeconds(UserConfig.SlideIntervalSeconds);
+            SlideTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(UserConfig.SlideIntervalSeconds)
+            };
             SlideTimer.Tick += SlideImages;
 
             main.Width = UserConfig.WidgetWidth;
@@ -69,13 +69,36 @@ namespace PhotosWidget
 
             mainBorder.Padding = new Thickness(UserConfig.BorderWidth);
 
+            if (UserConfig.LocationX >= 0 && UserConfig.LocationY >= 0)
+            {
+                main.WindowStartupLocation = WindowStartupLocation.Manual;
+                main.Left = UserConfig.LocationX;
+                main.Top = UserConfig.LocationY;
+            }
+
+            if (UserConfig.LocationX < 0 || UserConfig.LocationY < 0)
+            {
+                main.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                main.Left = (SystemParameters.PrimaryScreenWidth - main.Width) / 2;
+                main.Top = (SystemParameters.PrimaryScreenHeight - main.Height) / 2;
+            }
+
             switch (UserConfig.ModeCode)
             {
                 case (int)WidgetMode.Static:
                     if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFilePath) == false)
                     {
-                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         CurrentPhotoFilePath = UserConfig.CurrentPhotoFilePath;
+
+                        if (File.Exists(CurrentPhotoFilePath) == false)
+                        {
+                            contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ffffc825");
+                            UserConfig.CurrentPhotoFilePath = "";
+                            UserConfig.Save();
+                            return;
+                        }
+
+                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         LoadImage(CurrentPhotoFilePath);
                     }
                     else
@@ -90,8 +113,17 @@ namespace PhotosWidget
                 case (int)WidgetMode.Slide:
                     if (string.IsNullOrEmpty(UserConfig.CurrentPhotoFolderPath) == false)
                     {
-                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         CurrentPhotosFolderPath = UserConfig.CurrentPhotoFolderPath;
+
+                        if (Directory.Exists(CurrentPhotosFolderPath) == false)
+                        {
+                            contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ffffc825");
+                            UserConfig.CurrentPhotoFolderPath = "";
+                            UserConfig.Save();
+                            return;
+                        }
+
+                        contentBorder.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff000000");
                         FolderImagePaths = GetImageFilePathsFromFolder(CurrentPhotosFolderPath);
 
                         SlideImages();
@@ -122,12 +154,24 @@ namespace PhotosWidget
                 return;
             }
 
-            var move = sender as Window;
-            if (move != null)
+            if (sender is Window move)
             {
-                Window win = Window.GetWindow(move);
-                win.DragMove();
+                Window window = GetWindow(move);
+                window.DragMove();
             }
+        }
+
+        private void OnLocationChanged(object sender, EventArgs e)
+        {
+            if (IsApplyingConfig)
+            {
+                return;
+            }
+
+            UserConfig.LocationX = main.Left;
+            UserConfig.LocationY = main.Top;
+            Console.WriteLine($"Location: {UserConfig.LocationX}, {UserConfig.LocationY}");
+            UserConfig.Save();
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -237,46 +281,7 @@ namespace PhotosWidget
             appPromptLabel.Visibility = Visibility.Hidden;
             stagePhoto.Visibility = Visibility.Visible;
 
-            //if (Mode == WidgetMode.Static)
-            //{
-            //    stagePhoto.Source = bi;
-            //    return;
-            //}
-
             stagePhoto.Source = bi;
-
-            //if (stagePhoto.Source != null)
-            //{
-            //    stagePhoto.BeginAnimation(OpacityProperty, fadeOutAnimation);
-            //    fadeOutAnimation.Completed += (s, e) =>
-            //    {
-            //        if (Mode == WidgetMode.Static)
-            //        {
-            //            stagePhoto.Opacity = 1;
-            //            return;
-            //        }
-            //        stagePhoto.Source = bi;
-            //        stagePhoto.BeginAnimation(OpacityProperty, fadeInAnimation);
-            //    };
-            //}
-            //else
-            //{
-            //    if (Mode == WidgetMode.Static)
-            //    {
-            //        stagePhoto.Opacity = 1;
-            //        return;
-            //    }
-            //    stagePhoto.Opacity = 0;
-            //    stagePhoto.Source = bi;
-            //    stagePhoto.BeginAnimation(OpacityProperty, fadeInAnimation);
-            //    fadeInAnimation.Completed += (s, e) =>
-            //    {
-            //        stagePhoto.Opacity = 1;
-            //    };
-            //}
-
-
-
         }
 
         private void SlideImages(object sender = null, EventArgs e = null)
@@ -316,7 +321,7 @@ namespace PhotosWidget
 
         public void Exit(object sender, RoutedEventArgs e)
         {
-            App.Current.Shutdown();
+            System.Windows.Application.Current.Shutdown();
         }
 
     }

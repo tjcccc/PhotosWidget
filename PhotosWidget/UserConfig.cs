@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Path = System.IO.Path;
+using System.Windows;
 
 namespace PhotosWidget
 {
@@ -19,6 +20,8 @@ namespace PhotosWidget
         public int WidgetHeight { get; set; } = 579;
         public int BorderRadius { get; set; } = 8;
         public int BorderWidth { get; set; } = 2;
+        public double LocationX { get; set; } = -1;
+        public double LocationY { get; set; } = -1;
 
         public string ToConfigText()
         {
@@ -33,6 +36,8 @@ namespace PhotosWidget
             result += $"WidgetHeight = {WidgetHeight}\n";
             result += $"BorderRadius = {BorderRadius}\n";
             result += $"BorderWidth = {BorderWidth}\n";
+            result += $"LocationX = {LocationX}\n";
+            result += $"LocationY = {LocationY}\n";
 
             return result;
         }
@@ -74,6 +79,12 @@ namespace PhotosWidget
                     case "BorderWidth":
                         config.BorderWidth = int.Parse(keyValue[1].Trim() ?? "0");
                         break;
+                    case "LocationX":
+                        config.LocationX = double.Parse(keyValue[1].Trim() ?? "-1");
+                        break;
+                    case "LocationY":
+                        config.LocationY = double.Parse(keyValue[1].Trim() ?? "-1");
+                        break;
                     default:
                         break;
                 }
@@ -108,7 +119,7 @@ namespace PhotosWidget
             else
             {
                 var configString = File.ReadAllText(configFilePath);
-                return UserConfig.LoadFromConfigText(configString);
+                return LoadFromConfigText(configString);
             }
         }
     }
